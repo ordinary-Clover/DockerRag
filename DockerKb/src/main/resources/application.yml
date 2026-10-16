@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: docker-kb
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  ai:
+    ollama:
+      # 部署到docker中
+#      base-url: http://ollama:11434
+      #本地启动
+      base-url: http://localhost:11434
+      chat:
+        model: qwen:7b
+      embedding:
+        model: nomic-embed-text
+    vectorstore:
+      chroma:
+        client:
+          # 部署到docker中
+#          url: http://chroma:8000
+          #本地启动
+          url: http://localhost:8000
+        collection-name: kb_collection
+
+server:
+  port: 8080
