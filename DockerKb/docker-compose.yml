@@ -1,0 +1,67 @@
+services:
+
+  # SpringBoot后端
+  backend:
+    build: ./docker-deploy/backend
+    container_name: backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - chroma
+      - ollama
+    restart: always
+    environment:
+      # 可以在这里放spring环境变量，覆盖yml配置
+      SPRING_PROFILES_ACTIVE: prod
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+ # 如果没有N卡，删掉上面deploy块，CPU运行（速度慢）
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: all
+#              capabilities: [gpu]
+
+
+  chroma:
+    image: chromadb/chroma:0.5.11
+    container_name: chroma
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ALLOW_RESET=TRUE
+
+  # 前端
+  nginx:
+    build:
+      # context：构建上下文根目录！
+      context: ./docker-deploy/kb-nginx
+      dockerfile: Dockerfile
+    image: nginx:alpine
+    container_name: kb_nginx
+    restart: always
+    ports:
+      - "80:80"
+#    volumes:
+#      # 挂载本地配置文件 到容器nginx主配置
+#      - ./nginx.conf:/etc/nginx/conf/nginx.conf
+    depends_on:
+      - backend
+#      - ollama
+#      - chroma
+volumes:
+  ollama_data:
+  chroma_data:
